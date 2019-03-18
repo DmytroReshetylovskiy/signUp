@@ -1,7 +1,8 @@
 <?php
 
 $params = require __DIR__ . '/params.php';
-$db = require __DIR__ . '/db.php';
+$mysql = require __DIR__ . '/mysql.php';
+$postgresql = require __DIR__ . '/postgresql.php';
 
 $config = [
     'id' => 'basic',
@@ -15,6 +16,7 @@ $config = [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'Cr4d8yzABsfWIiO-e9VLBPkC5mgOwyoz',
+            'baseUrl' => '',
         ],
         'cache' => [
             'class' => 'yii\caching\FileCache',
@@ -42,15 +44,18 @@ $config = [
                 ],
             ],
         ],
-        'db' => $db,
-        /*
+        'db' => $mysql,
+        'postgresql' => $postgresql,
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
             'rules' => [
+                '<action:(about|contact|login|logout)>' => 'site/<action>',
+                'register' => 'site/show-form',
+                'POST register/<step:\d+>' => 'auth/register/register',
+                'GET info' => 'auth/register/info',
             ],
         ],
-        */
     ],
     'params' => $params,
 ];
