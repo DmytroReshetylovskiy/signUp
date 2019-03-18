@@ -5,6 +5,7 @@ namespace app\controllers\auth;
 use app\models\User;
 use Yii;
 use yii\rest\Controller;
+use yii\web\Cookie;
 
 /**
  * Class RegisterController
@@ -20,9 +21,13 @@ class RegisterController extends Controller
      */
     public function actionInfo($data = null)
     {
-        $session = Yii::$app->session;
-        if ($session->has('registration')) {
-            $data = $session->get('registration');
+        $cookies = Yii::$app->request->cookies;
+        if ($cookies->has('registration')) {
+            $data = $cookies->getValue('registration');
+            if (!empty($data['clientId']) && $user = User::findOne($data['clientId'])->toArray()) {
+                unset($user['id']);
+                $data = array_merge($data, ['values' => $user]);
+            }
         }
 
         return $data;
@@ -42,6 +47,13 @@ class RegisterController extends Controller
             $user = !empty($data['clientId']) ? (User::findOne($data['clientId']) ?? new User()) : new User();
             $user->load($data, '');
             $user->save();
+            Yii::$app->response->cookies->add(new Cookie([
+                'name' => 'registration',
+                'value' => [
+                    'clientId' => $user->id,
+                    'step' => $step,
+                ]
+            ]));
         }
 
         return $user;

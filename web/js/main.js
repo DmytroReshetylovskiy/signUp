@@ -4,7 +4,6 @@ $(document).ready(function () {
 
     var currentTab = 0;
     var clientId;
-    showTab(currentTab);
 
     $.get("/info", function (data) {
         if (data) {
@@ -12,7 +11,12 @@ $(document).ready(function () {
             $.each(data.values, function (key, value) {
                 document.getElementById("regForm")[key].value = value;
             });
+            if (data.step) {
+                currentTab = data.step;
+            }
+            clientId = data.clientId;
         }
+        showTab(currentTab);
     });
 
     function sendRequest(postData) {
@@ -56,7 +60,7 @@ $(document).ready(function () {
 
     window.nextPrev = function(n) {
         var x = document.getElementsByClassName("tab");
-        // Exit the function if any field in the current tab is invalid:
+
         if (n == 1 && !validateForm()) {
             return false;
         }
@@ -83,7 +87,7 @@ $(document).ready(function () {
         if (valid) {
             document.getElementsByClassName("step")[currentTab].className += " finish";
         }
-        return valid; // return the valid status
+        return valid;
     }
 
     function fixStepIndicator(n) {
