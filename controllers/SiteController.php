@@ -125,4 +125,15 @@ class SiteController extends Controller
     {
         return $this->render('about');
     }
+
+    /**
+     * Show form for registration
+     *
+     * @return string
+     */
+    public function actionShowForm()
+    {
+        return $this->render('showForm');
+
+    }
 }
