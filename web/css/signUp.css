@@ -39,3 +39,7 @@ input.invalid {
 .step.finish {
     background-color: #4CAF50;
 }
+
+.step.error {
+    background-color: red;
+}

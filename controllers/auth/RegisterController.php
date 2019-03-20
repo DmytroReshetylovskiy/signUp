@@ -2,10 +2,11 @@
 
 namespace app\controllers\auth;
 
-use app\helper\CookieHelper;
-use app\models\User;
+use app\helper\SendRequestForReceiptBackendId;
+use app\models\Client;
 use Yii;
 use yii\rest\Controller;
+use yii\web\Cookie;
 
 /**
  * Class RegisterController
@@ -21,8 +22,7 @@ class RegisterController extends Controller
     public function actionInfo(): ?array
     {
         $cookies = Yii::$app->request->cookies;
-        $data = CookieHelper::getCookie($cookies);
-        return $data;
+        return $cookies->has('registration') ? $cookies->getValue('registration') : null;
     }
 
     /**
@@ -33,29 +33,38 @@ class RegisterController extends Controller
      */
     public function actionRegister($step): array
     {
-        $data = Yii::$app->request->post();
-
-        if ($step == 1) {
-            $user = !empty($data['clientId']) ? (User::findOne($data['clientId']) ?? new User()) : new User();
-            $user->load($data, '');
-            $user->save();
-            $data = [
-                'clientId' => $user->id,
-            ];
-            CookieHelper::setCookie('registration', $data);
-        } elseif ($step == 2) {
-            $data = [
-                'address' => $data['address'],
-            ];
-            CookieHelper::setCookie('additionally', $data);
-        } elseif ($step == 3) {
-            $data = [
-                'address' => $data['address'],
-                'comment' => $data['comment'],
-            ];
-            CookieHelper::setCookie('additionally', $data);
-        }
-        CookieHelper::setCookie('step', (int)$step);
+        $request = Yii::$app->request->post();
+        $data['values'] = $request;
+        Yii::$app->response->cookies->add(new Cookie([
+            'name' => 'registration',
+            'value' => array_merge($data, ['step' => (int)$step]),
+        ]));
         return ['success' => true];
+    }
+
+    /**
+     * Create user with feedbackDataId
+     *
+     * @return array
+     */
+    public function actionCreateUser(): array
+    {
+        $data = Yii::$app->request->post();
+        $cookies = Yii::$app->request->cookies;
+        $client = $cookies->has('client_id') ? (Client::findOne($cookies->getValue('client_id')) ?? new Client()) : new Client();
+        $client->load($data, '');
+        $client->save();
+        Yii::$app->response->cookies->add(new Cookie([
+            'name' => 'client_id',
+            'value' => (int)$client->id,
+        ]));
+        $response = SendRequestForReceiptBackendId::getFeedbackDataId($client);
+        if (!empty($response['feedbackDataId'])) {
+            $client->feedbackDataId = $response['feedbackDataId'];
+            $client->save();
+            Yii::$app->response->cookies->remove('registration');
+            Yii::$app->response->cookies->remove('client_id');
+        }
+        return $response;
     }
 }

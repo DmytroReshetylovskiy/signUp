@@ -1,7 +1,7 @@
 <?php
 
 $params = require __DIR__ . '/params.php';
-$mysql = require __DIR__ . '/mysql.php';
+$db = require __DIR__ . '/db.php';
 
 $config = [
     'id' => 'basic',
@@ -43,7 +43,7 @@ $config = [
                 ],
             ],
         ],
-        'db' => $mysql,
+        'db' => $db,
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,
@@ -51,6 +51,7 @@ $config = [
                 '<action:(about|contact|login|logout)>' => 'site/<action>',
                 'register' => 'site/show-form',
                 'POST register/<step:\d+>' => 'auth/register/register',
+                'POST create-client' => 'auth/register/create-user',
                 'GET info' => 'auth/register/info',
             ],
         ],

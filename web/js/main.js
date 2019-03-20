@@ -3,7 +3,7 @@ $(document).ready(function () {
     "use strict";
 
     var currentTab = 0;
-    var clientId;
+    var feedbackDataId = '';
 
     $.get("/info", function (data) {
         if (data) {
@@ -13,17 +13,46 @@ $(document).ready(function () {
             if (data.step) {
                 currentTab = data.step;
             }
-            clientId = data.clientId;
         }
         showTab(currentTab);
     });
 
     function sendRequest(postData) {
-        $.post("/register/"+currentTab, postData, function( data ) {
-            if(data.id) {
-                clientId = data.id;
+        $.post("/register/"+currentTab, postData, function() {});
+    }
+
+    function submitForm(postData) {
+        $.post("/create-client", postData, function( data ) {
+            console.log(data);
+            if (data.feedbackDataId) {
+                feedbackDataId = data.feedbackDataId;
+                document.getElementById('outputFeedbackDataId').innerHTML = 'feedbackDataId: ' + feedbackDataId;
+                showFinalTab(currentTab)
+            } else {
+                document.getElementById('outputFeedbackDataId').innerHTML = 'Error: ' + data.error;
+                showFinalErrorTab(currentTab)
             }
         });
+    }
+
+    function showFinalErrorTab(n) {
+        var x = document.getElementsByClassName("tab");
+        x[n].style.display = "block";
+
+        document.getElementById("prevBtn").style.display = "none";
+        document.getElementById("nextBtn").style.display = "none";
+        document.getElementsByClassName("step")[3].className += " error";
+        currentTab = 0;
+        sendRequest(getElementsById());
+    }
+
+    function showFinalTab(n) {
+        var x = document.getElementsByClassName("tab");
+        x[n].style.display = "block";
+
+        document.getElementById("prevBtn").style.display = "none";
+        document.getElementById("nextBtn").style.display = "none";
+        document.getElementsByClassName("step")[3].className += " finish"
     }
 
     function showTab(n) {
@@ -44,6 +73,16 @@ $(document).ready(function () {
         fixStepIndicator(n)
     }
 
+    function getElementsById() {
+        return {
+            name: document.getElementById("regForm").name.value,
+            surname: document.getElementById("regForm").surname.value,
+            phone: document.getElementById("regForm").phone.value,
+            address: document.getElementById("regForm").address.value,
+            comment: document.getElementById("regForm").comment.value
+        };
+    }
+
     window.nextPrev = function(n) {
         var x = document.getElementsByClassName("tab");
 
@@ -52,33 +91,15 @@ $(document).ready(function () {
         }
         x[currentTab].style.display = "none";
         currentTab = currentTab + n;
-        var data = null;
-        if (currentTab == 1) {
-            data = {
-                name: document.getElementById("regForm").name.value,
-                surname: document.getElementById("regForm").surname.value,
-                phone: document.getElementById("regForm").phone.value,
-                clientId: clientId
-            };
-            sendRequest(data);
-        } else if (currentTab == 2) {
-            data = {
-                address: document.getElementById("regForm").address.value
-            };
-            sendRequest(data);
-        } else if (currentTab == 3) {
-            data = {
-                address: document.getElementById("regForm").address.value,
-                comment: document.getElementById("regForm").comment.value
-            };
-            sendRequest(data);
-        } else {
-            sendRequest(data);
-        }
-        if (currentTab >= x.length) {
-            document.getElementById("regForm").submit();
+
+        var data = getElementsById();
+
+        if (currentTab >= x.length - 1) {
+            submitForm(data);
             return false;
         }
+
+        sendRequest(data);
         showTab(currentTab);
     };
 
@@ -101,6 +122,11 @@ $(document).ready(function () {
 
     function fixStepIndicator(n) {
         var i, x = document.getElementsByClassName("step");
+        if (n > 0) {
+            for (i = n - 1; i >= 0; i--) {
+                x[i].className = x[i].className += " finish";
+            }
+        }
         for (i = 0; i < x.length; i++) {
             x[i].className = x[i].className.replace(" active", "");
         }
