@@ -7,7 +7,6 @@ $(document).ready(function () {
 
     $.get("/info", function (data) {
         if (data) {
-            currentTab = data.step;
             $.each(data.values, function (key, value) {
                 document.getElementById("regForm")[key].value = value;
             });
@@ -20,9 +19,6 @@ $(document).ready(function () {
     });
 
     function sendRequest(postData) {
-        if(clientId) {
-            postData.client_id = clientId;
-        }
         $.post("/register/"+currentTab, postData, function( data ) {
             if(data.id) {
                 clientId = data.id;
@@ -31,16 +27,6 @@ $(document).ready(function () {
     }
 
     function showTab(n) {
-        if (n == 1) {
-            var data = {
-                name: document.getElementById("regForm").name.value,
-                surname: document.getElementById("regForm").surname.value,
-                phone: document.getElementById("regForm").phone.value,
-                clientId: clientId
-            };
-            sendRequest(data);
-        }
-
         var x = document.getElementsByClassName("tab");
         x[n].style.display = "block";
 
@@ -66,6 +52,29 @@ $(document).ready(function () {
         }
         x[currentTab].style.display = "none";
         currentTab = currentTab + n;
+        var data = null;
+        if (currentTab == 1) {
+            data = {
+                name: document.getElementById("regForm").name.value,
+                surname: document.getElementById("regForm").surname.value,
+                phone: document.getElementById("regForm").phone.value,
+                clientId: clientId
+            };
+            sendRequest(data);
+        } else if (currentTab == 2) {
+            data = {
+                address: document.getElementById("regForm").address.value
+            };
+            sendRequest(data);
+        } else if (currentTab == 3) {
+            data = {
+                address: document.getElementById("regForm").address.value,
+                comment: document.getElementById("regForm").comment.value
+            };
+            sendRequest(data);
+        } else {
+            sendRequest(data);
+        }
         if (currentTab >= x.length) {
             document.getElementById("regForm").submit();
             return false;
@@ -76,10 +85,10 @@ $(document).ready(function () {
     function validateForm() {
         var x, y, i, valid = true;
         x = document.getElementsByClassName("tab");
-        console.log(currentTab);
         y = x[currentTab].getElementsByTagName("input");
         for (i = 0; i < y.length; i++) {
-            if (y[i].value == "") {
+            if (y[i].value.trim() == "") {
+                y[i].value = "";
                 y[i].className += " invalid";
                 valid = false;
             }

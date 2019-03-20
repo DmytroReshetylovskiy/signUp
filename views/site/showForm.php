@@ -31,3 +31,5 @@
         <span class="step"></span>
     </div>
 </form>
+
+<?php $this->registerJsFile('@web/js/main.js', ['depends' => 'yii\web\YiiAsset']); ?>

@@ -24,7 +24,6 @@ class AppAsset extends AssetBundle
         'css/signUp.css',
     ];
     public $js = [
-        'js/main.js',
     ];
     public $depends = [
         'yii\web\YiiAsset',

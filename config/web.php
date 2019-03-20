@@ -2,7 +2,6 @@
 
 $params = require __DIR__ . '/params.php';
 $mysql = require __DIR__ . '/mysql.php';
-$postgresql = require __DIR__ . '/postgresql.php';
 
 $config = [
     'id' => 'basic',
@@ -45,7 +44,6 @@ $config = [
             ],
         ],
         'db' => $mysql,
-        'postgresql' => $postgresql,
         'urlManager' => [
             'enablePrettyUrl' => true,
             'showScriptName' => false,

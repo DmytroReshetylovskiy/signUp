@@ -2,10 +2,10 @@
 
 namespace app\controllers\auth;
 
+use app\helper\CookieHelper;
 use app\models\User;
 use Yii;
 use yii\rest\Controller;
-use yii\web\Cookie;
 
 /**
  * Class RegisterController
@@ -16,20 +16,12 @@ class RegisterController extends Controller
     /**
      * Get information about registration
      *
-     * @param null $data
-     * @return array
+     * @return array|null
      */
-    public function actionInfo($data = null)
+    public function actionInfo(): ?array
     {
         $cookies = Yii::$app->request->cookies;
-        if ($cookies->has('registration')) {
-            $data = $cookies->getValue('registration');
-            if (!empty($data['clientId']) && $user = User::findOne($data['clientId'])->toArray()) {
-                unset($user['id']);
-                $data = array_merge($data, ['values' => $user]);
-            }
-        }
-
+        $data = CookieHelper::getCookie($cookies);
         return $data;
     }
 
@@ -37,9 +29,9 @@ class RegisterController extends Controller
      * Register user by parameters
      *
      * @param $step
-     * @return User
+     * @return array
      */
-    public function actionRegister($step)
+    public function actionRegister($step): array
     {
         $data = Yii::$app->request->post();
 
@@ -47,15 +39,23 @@ class RegisterController extends Controller
             $user = !empty($data['clientId']) ? (User::findOne($data['clientId']) ?? new User()) : new User();
             $user->load($data, '');
             $user->save();
-            Yii::$app->response->cookies->add(new Cookie([
-                'name' => 'registration',
-                'value' => [
-                    'clientId' => $user->id,
-                    'step' => $step,
-                ]
-            ]));
+            $data = [
+                'clientId' => $user->id,
+            ];
+            CookieHelper::setCookie('registration', $data);
+        } elseif ($step == 2) {
+            $data = [
+                'address' => $data['address'],
+            ];
+            CookieHelper::setCookie('additionally', $data);
+        } elseif ($step == 3) {
+            $data = [
+                'address' => $data['address'],
+                'comment' => $data['comment'],
+            ];
+            CookieHelper::setCookie('additionally', $data);
         }
-
-        return $user;
+        CookieHelper::setCookie('step', (int)$step);
+        return ['success' => true];
     }
 }
