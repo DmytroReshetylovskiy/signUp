@@ -54,6 +54,7 @@ class RegisterController extends Controller
         $client = $cookies->has('client_id') ? (Client::findOne($cookies->getValue('client_id')) ?? new Client()) : new Client();
         $client->load($data, '');
         $client->save();
+        // if during receipt feedbackDataId, we have an error, we can find our user
         Yii::$app->response->cookies->add(new Cookie([
             'name' => 'client_id',
             'value' => (int)$client->id,
